@@ -1,11 +1,19 @@
 resource "aws_instance" "web" {
   # AMI ID NGINX  = ami-0dfee6e7eb44d480b
   # AMI ID Ubuntu = ami-0652a081025ec9fee
-  ami                         = "ami-0dfee6e7eb44d480b"
+  ami                         = "ami-0652a081025ec9fee"
   associate_public_ip_address = true
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.public.id
   vpc_security_group_ids      = [aws_security_group.public_http_traffic.id]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              apt-get update -y
+              apt-get install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
+              EOF
   root_block_device {
     delete_on_termination = true
     volume_size           = 10
@@ -29,6 +37,12 @@ resource "aws_security_group" "public_http_traffic" {
   tags = merge(local.common_tags, {
     Name = "06-resources-sg"
   })
+}
+
+resource "aws_vpc_security_group_egress_rule" "all" {
+  security_group_id = aws_security_group.public_http_traffic.id
+  cidr_ipv4         = "0.0.0.0/0"
+  ip_protocol       = "-1"
 }
 
 resource "aws_vpc_security_group_ingress_rule" "http" {
