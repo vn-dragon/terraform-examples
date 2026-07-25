@@ -1,5 +1,6 @@
 .env
-.terraform/
+**/.terraform
 **.tfstate*
 .prettierrc
 .DS_Store
+.terraform.lock.hcl
